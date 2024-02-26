@@ -102,7 +102,7 @@ func GetStatement(ClientId int) (ultimasTransacoes ClientStatement, statementErr
 		log.Println("Statement: Scan recent transactions error")
 		panic(err)
 	}
-
-	return
+	sqlTransaction.Commit(context.Background())
+	return ultimasTransacoes, nil
 
 }

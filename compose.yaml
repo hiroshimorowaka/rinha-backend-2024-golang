@@ -10,7 +10,8 @@ services:
       - DATABASE_URL=postgres://docker:docker@localhost:5432/rinha?sslmode=disable
       - HTTP_PORT=8081
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -30,9 +31,15 @@ services:
     image: postgres:16.1-alpine3.19
     network_mode: host
     container_name: postgres
-    command: postgres -c 'max_connections=150' -c 'log_error_verbosity=terse'
+    command: postgres -c 'max_connections=75' -c 'log_error_verbosity=terse'
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
     environment:
       - POSTGRES_USER=docker
       - POSTGRES_PASSWORD=docker
