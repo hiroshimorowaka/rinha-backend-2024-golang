@@ -17,7 +17,7 @@ func InitConnectionPool() error {
 		log.Println(err.Error())
 	}
 
-	config.MaxConnIdleTime = 0
+	// config.MaxConnIdleTime = 0
 
 	config.MaxConns = 16 // 16
 	config.MinConns = 13 // 13
