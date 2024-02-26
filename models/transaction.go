@@ -44,7 +44,7 @@ func MakeTransaction(transactionObj *Transaction) (result Client, transactionErr
 
 	var sqlQuery = `SELECT saldo, limite FROM clientes WHERE id = $1`
 
-	row := sqlTransaction.QueryRow(context.Background(), sqlQuery, &transactionObj.ID)
+	row := sqlTransaction.QueryRow(context.Background(), sqlQuery, transactionObj.ID)
 
 	err = row.Scan(&result.Saldo, &result.Limite)
 
