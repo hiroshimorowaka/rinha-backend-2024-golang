@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,7 +30,7 @@ func InitConnectionPool() error {
 		return err
 	}
 
-	log.Println(pool.Config())
+	fmt.Printf("%+v", *pool.Config())
 
 	db = pool
 	return nil

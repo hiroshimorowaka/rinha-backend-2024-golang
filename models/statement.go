@@ -32,7 +32,7 @@ type StatementError struct {
 	Message string
 }
 
-func GetStatement(ClientId int) (ultimasTransacoes ClientStatement, statementError *StatementError) { //começar a retornar erros aqui pra tratar depois
+func GetStatement(ClientId int) (clientStatement ClientStatement, statementError *StatementError) { //começar a retornar erros aqui pra tratar depois
 
 	conn := database.GetConnection()
 
@@ -45,19 +45,19 @@ func GetStatement(ClientId int) (ultimasTransacoes ClientStatement, statementErr
 		panic(err)
 	}
 
-	defer sqlTransaction.Rollback(context.Background()) // Rollback da transação se ocorrer um erro ou não for confirmada
+	defer sqlTransaction.Commit(context.Background()) // Rollback da transação se ocorrer um erro ou não for confirmada
 
 	var clientQuery = `SELECT saldo, limite FROM clientes WHERE id = $1`
 
 	row := sqlTransaction.QueryRow(context.Background(), clientQuery, ClientId)
 
-	err = row.Scan(&ultimasTransacoes.Informations.Total, &ultimasTransacoes.Informations.Limite)
+	err = row.Scan(&clientStatement.Informations.Total, &clientStatement.Informations.Limite)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return ultimasTransacoes, &StatementError{Status: 404, Message: "User not found"}
+			return clientStatement, &StatementError{Status: 404, Message: "User not found"}
 		}
-		return ultimasTransacoes, &StatementError{Status: 500, Message: "Internal server error"}
+		return clientStatement, &StatementError{Status: 500, Message: "Internal server error"}
 	}
 
 	var databaseQuery = `
@@ -87,9 +87,9 @@ func GetStatement(ClientId int) (ultimasTransacoes ClientStatement, statementErr
 		}
 
 		if tipo == "valor" {
-			ultimasTransacoes.Informations.DataExtrato = realizadaEm
+			clientStatement.Informations.DataExtrato = realizadaEm
 		} else {
-			ultimasTransacoes.UltimasTransacoes = append(ultimasTransacoes.UltimasTransacoes, Extrato{
+			clientStatement.UltimasTransacoes = append(clientStatement.UltimasTransacoes, Extrato{
 				Valor:       valor,
 				Tipo:        tipo,
 				Descricao:   descricao,
@@ -102,7 +102,6 @@ func GetStatement(ClientId int) (ultimasTransacoes ClientStatement, statementErr
 		log.Println("Statement: Scan recent transactions error")
 		panic(err)
 	}
-	sqlTransaction.Commit(context.Background())
-	return ultimasTransacoes, nil
+	return clientStatement, nil
 
 }
